@@ -1,0 +1,9 @@
+# Ignorar generados y grandes
+node_modules/
+.next/
+.prisma/client/
+*.db
+*.sqlite
+.env
+.env.local
+.vercel/

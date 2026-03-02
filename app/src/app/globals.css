@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --midnight-900: #0A1628;
+  --midnight-800: #0A2540;
+  --brand-600: #3B82F6;
+  --aqua-700: #00BFA5;
+  --aqua-600: #40E0D0;
+  --aqua-500: #67E8CE;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--midnight-900);
+  color: #E5E7EB;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-light {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Glow effects */
+.glow-aqua {
+  box-shadow: 0 0 20px rgba(0, 191, 165, 0.3), 0 0 60px rgba(0, 191, 165, 0.1);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.1);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #67E8CE 0%, #3B82F6 50%, #00BFA5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated background grid */
+.bg-grid {
+  background-image: 
+    linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Scan line animation for biometric */
+.scan-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #00BFA5, transparent);
+  animation: scanLine 2s linear infinite;
+  box-shadow: 0 0 20px rgba(0, 191, 165, 0.8);
+}
+
+@keyframes scanLine {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+/* Progress bar */
+.progress-fill {
+  background: linear-gradient(90deg, #00BFA5, #3B82F6, #00BFA5);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 191, 165, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 191, 165, 0.5);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300;
+  background: linear-gradient(135deg, #00BFA5, #1E40AF);
+  box-shadow: 0 4px 15px rgba(0, 191, 165, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 191, 165, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(0, 191, 165, 0.3);
+  color: #67E8CE;
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 191, 165, 0.1);
+  border-color: rgba(0, 191, 165, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Card styles */
+.card {
+  @apply rounded-2xl p-6 transition-all duration-300;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.card:hover {
+  border-color: rgba(0, 191, 165, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Input styles */
+.input-field {
+  @apply w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 transition-all duration-300 outline-none;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.input-field:focus {
+  border-color: #00BFA5;
+  box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.1);
+}
+
+/* Mobile nav */
+.mobile-nav {
+  @apply fixed bottom-0 left-0 right-0 z-50;
+  background: rgba(10, 22, 40, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Badge */
+.badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  background: rgba(0, 191, 165, 0.15);
+  color: #67E8CE;
+  border: 1px solid rgba(0, 191, 165, 0.2);
+}
+
+.badge-gold {
+  background: rgba(255, 215, 0, 0.15);
+  color: #FFD700;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+/* Webcam video */
+.webcam-container {
+  @apply relative rounded-2xl overflow-hidden;
+  border: 2px solid rgba(0, 191, 165, 0.3);
+  box-shadow: 0 0 40px rgba(0, 191, 165, 0.1);
+}
+
+.webcam-container video {
+  @apply w-full h-full object-cover;
+  transform: scaleX(-1);
+}
+
+/* Quiz card */
+.quiz-option {
+  @apply p-4 rounded-xl cursor-pointer transition-all duration-300;
+  background: rgba(30, 41, 59, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.quiz-option:hover {
+  border-color: rgba(0, 191, 165, 0.4);
+  background: rgba(0, 191, 165, 0.05);
+}
+
+.quiz-option.correct {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.quiz-option.incorrect {
+  border-color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.quiz-option.selected {
+  border-color: #3B82F6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* Signature canvas */
+.signature-canvas {
+  @apply rounded-xl;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(0, 191, 165, 0.3);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* Level badges */
+.level-novato { color: #9CA3AF; border-color: #9CA3AF; }
+.level-aprendiz { color: #60A5FA; border-color: #60A5FA; }
+.level-consciente { color: #34D399; border-color: #34D399; }
+.level-responsable { color: #FBBF24; border-color: #FBBF24; }
+.level-ejemplar { color: #F59E0B; border-color: #F59E0B; }

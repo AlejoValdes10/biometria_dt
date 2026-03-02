@@ -15,25 +15,27 @@ Aplicación de capacitación virtual obligatoria sobre normas de tránsito en Co
    npx prisma db push
    ```
 
-3. Levanta el servidor exponiendo a la red local (para probar en el móvil):
+3. Levanta el servidor exponiendo a la red local:
    ```bash
    npm run dev -- -H 0.0.0.0
+   ```
+4. Usa ngrok para túnel HTTPS y test en móvil:
+   ```bash
+   ngrok http 3000
    ```
 
 ## Pruebas en Móvil (Biometría y WebAuthn)
 
-Para probar la cámara y la huella digital en un dispositivo móvil moderno, es estrictamente necesario un entorno seguro (HTTPS). Puedes usar **ngrok** para crear un túnel a tu servidor local:
+Para probar la cámara y la huella digital en un dispositivo móvil moderno, es estrictamente necesario un entorno seguro (HTTPS). Usando el túnel creado por ngrok (ej: `https://<tu-id>.ngrok-free.app`) podrás acceder en tu teléfono celular y conceder permisos a la cámara o WebAuthn de forma correcta.
 
-1. Instala ngrok y asegúrate de tener una cuenta:
-   ```bash
-   ngrok http 3000
-   ```
-2. Abre la URL generada (`https://<tu-id>.ngrok-free.app`) en tu teléfono celular.
-3. El inicio de sesión biométrico o WebAuthn debería pedirte permisos para la cámara o mostrarte el prompt nativo del dispositivo para Face ID/Touch ID/Huella dactilar.
+## Despliegue en Vercel & Neon.tech (PostgreSQL)
 
-## Despliegue (Vercel)
+Esta aplicación está configurada para desplegarse fácilmente en Vercel utilizando una base de datos PostgreSQL gratuita de Neon.tech.
 
-Esta aplicación está optimizada para desplegarse fácilmente en Vercel. 
-- Conecta el repositorio desde el panel de Vercel.
-- Asegúrate de que los comandos de build sean los estándar de Next.js.
-- Durante el build, el schema de Prisma se genera automáticamente gracias a la dependencia instalada. (Nota: Para un entorno serverless con alta concurrencia en Vercel se recomienda cambiar SQLite por Postgres en `schema.prisma`).
+1. Crea una cuenta en [Neon.tech](https://neon.tech/) y un nuevo proyecto.
+2. Copia la cadena de conexión a la base de datos (Ej: `postgresql://user:password@hostname/dbname?sslmode=require`).
+3. En Vercel, crea un nuevo proyecto conectando tu repositorio de GitHub.
+4. Antes de desplegar, añade las siguientes Variables de Entorno en la configuración de Vercel:
+   - `DATABASE_URL` (Debe ser tu connection string de Neon)
+   - `DIRECT_URL` (La misma connection string, usada para Prisma)
+5. Finalmente, despliega el proyecto. Durante el proceso de build, Vercel ejecutará `npx prisma generate` de forma automática. Sincroniza la tabla creando modelos en Neon ejecutando localmente `npx prisma db push` con el URL de Neon.

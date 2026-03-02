@@ -395,6 +395,12 @@ function BiometricLogin({
             setStatus('scanning');
             setStatusMsg('Modelos cargados. Posicione su rostro frente a la cámara.');
 
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setStatus('error');
+                setStatusMsg('La cámara no está disponible. Asegúrese de usar HTTPS o localhost.');
+                return;
+            }
+
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             const video = document.getElementById('biometric-video') as HTMLVideoElement;
             if (video) {

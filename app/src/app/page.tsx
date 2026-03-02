@@ -30,11 +30,7 @@ export default function LandingPage() {
         })));
 
         initDemoData();
-        const user = getCurrentUser();
-        if (user) {
-            if (user.role === 'admin') router.push('/admin');
-            else router.push('/dashboard');
-        }
+        /* No automatic redirects to prevent 404s on fresh deploys */
     }, [router]);
 
     const speakGreeting = () => {
@@ -224,140 +220,137 @@ export default function LandingPage() {
                                     </div>
                                 </button>
 
-                                {/* Register link */}
-                                <div className="text-center pt-4 border-t border-white/5">
-                                    <p className="text-gray-400 text-sm">
-                                        ¿No tienes cuenta?{' '}
-                                        <a href="/registro" className="text-aqua-500 hover:text-aqua-400 font-medium transition-colors">
-                                            Regístrate aquí
-                                        </a>
-                                    </p>
-                                </div>
+                                {/* Direct Access Links */}
+                                <a href="/registro" className="text-aqua-500 hover:text-aqua-400 font-medium transition-colors">
+                                    Regístrate aquí
+                                </a>
+                            </p>
+                        </div>
 
-                                {/* Demo info */}
-                                <div className="mt-4 p-3 rounded-xl bg-brand-800/10 border border-brand-600/20">
-                                    <p className="text-xs text-brand-400 text-center">
-                                        <strong>Demo Admin:</strong> admin@ciudadano.co / admin123
-                                    </p>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* Biometric mode */}
-                        {mode === 'biometric' && (
-                            <motion.div
-                                key="biometric"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <BiometricLogin
-                                    onBack={() => setMode('welcome')}
-                                    onSuccess={handleSuccessLogin}
-                                    onError={setError}
-                                />
-                            </motion.div>
-                        )}
-
-                        {/* Credentials mode */}
-                        {mode === 'credentials' && (
-                            <motion.div
-                                key="credentials"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                                className="space-y-5"
-                            >
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-xl font-bold text-white">Iniciar sesión</h2>
-                                    <button
-                                        onClick={() => { setMode('welcome'); setError(''); }}
-                                        className="text-sm text-aqua-500 hover:text-aqua-400"
-                                    >
-                                        ← Volver
-                                    </button>
-                                </div>
-
-                                <form onSubmit={handleCredentialLogin} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm text-gray-400 mb-1.5">Usuario o correo</label>
-                                        <div className="relative">
-                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input
-                                                type="text"
-                                                value={username}
-                                                onChange={(e) => setUsername(e.target.value)}
-                                                className="input-field pl-11"
-                                                placeholder="usuario@correo.com"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-gray-400 mb-1.5">Contraseña</label>
-                                        <div className="relative">
-                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input
-                                                type="password"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                className="input-field pl-11"
-                                                placeholder="••••••••"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {error && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-                                        >
-                                            <AlertCircle className="w-4 h-4 shrink-0" />
-                                            {error}
-                                        </motion.div>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        {loading ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <>
-                                                Ingresar
-                                                <ChevronRight className="w-5 h-5" />
-                                            </>
-                                        )}
-                                    </button>
-                                </form>
-
-                                <div className="text-center pt-2">
-                                    <a href="/registro" className="text-sm text-aqua-500 hover:text-aqua-400 font-medium">
-                                        ¿No tienes cuenta? Regístrate
-                                    </a>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    {/* Demo info */}
+                    <div className="mt-4 p-3 rounded-xl bg-brand-800/10 border border-brand-600/20">
+                        <p className="text-xs text-brand-400 text-center">
+                            <strong>Demo Admin:</strong> admin@ciudadano.co / admin123
+                        </p>
+                    </div>
                 </motion.div>
+                        )}
 
-                {/* Footer */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                    className="text-center text-xs text-gray-600 mt-8"
-                >
-                    © 2026 Respeto Vial Colombia · Respeto Vial Colombia
-                </motion.p>
-            </motion.div>
-        </div>
+                {/* Biometric mode */}
+                {mode === 'biometric' && (
+                    <motion.div
+                        key="biometric"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <BiometricLogin
+                            onBack={() => setMode('welcome')}
+                            onSuccess={handleSuccessLogin}
+                            onError={setError}
+                        />
+                    </motion.div>
+                )}
+
+                {/* Credentials mode */}
+                {mode === 'credentials' && (
+                    <motion.div
+                        key="credentials"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-5"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-white">Iniciar sesión</h2>
+                            <button
+                                onClick={() => { setMode('welcome'); setError(''); }}
+                                className="text-sm text-aqua-500 hover:text-aqua-400"
+                            >
+                                ← Volver
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCredentialLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1.5">Usuario o correo</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="input-field pl-11"
+                                        placeholder="usuario@correo.com"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1.5">Contraseña</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="input-field pl-11"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+                                >
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    {error}
+                                </motion.div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        Ingresar
+                                        <ChevronRight className="w-5 h-5" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="text-center pt-2">
+                            <a href="/registro" className="text-sm text-aqua-500 hover:text-aqua-400 font-medium">
+                                ¿No tienes cuenta? Regístrate
+                            </a>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+
+                {/* Footer */ }
+    <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="text-center text-xs text-gray-600 mt-8"
+    >
+        © 2026 Respeto Vial Colombia · Respeto Vial Colombia
+    </motion.p>
+            </motion.div >
+        </div >
     );
 }
 
@@ -395,7 +388,7 @@ function BiometricLogin({
             setStatus('scanning');
             setStatusMsg('Modelos cargados. Posicione su rostro frente a la cámara.');
 
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (!navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 setStatus('error');
                 setStatusMsg('La cámara no está disponible. Asegúrese de usar HTTPS o localhost.');
                 return;

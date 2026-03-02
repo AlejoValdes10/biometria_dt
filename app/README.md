@@ -39,3 +39,7 @@ Esta aplicación está configurada para desplegarse fácilmente en Vercel utiliz
    - `DATABASE_URL` (Debe ser tu connection string de Neon)
    - `DIRECT_URL` (La misma connection string, usada para Prisma)
 5. Finalmente, despliega el proyecto. Durante el proceso de build, Vercel ejecutará `npx prisma generate` de forma automática. Sincroniza la tabla creando modelos en Neon ejecutando localmente `npx prisma db push` con el URL de Neon.
+
+> [!IMPORTANT]
+> **Configuración en Vercel:**
+> Asegúrate de establecer el **Root Directory** como `app` en la configuración de Vercel si estás desplegando desde la raíz del repositorio `biometria`. Esto evitará errores de `404: NOT_FOUND`.

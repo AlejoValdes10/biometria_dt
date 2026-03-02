@@ -1,4 +1,3 @@
-# Ignorar generados y grandes
 node_modules/
 .next/
 .prisma/client/
@@ -6,4 +5,4 @@ node_modules/
 *.sqlite
 .env
 .env.local
-.vercel/
+backend/

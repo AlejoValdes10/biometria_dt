@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, User, Mail, Lock, Camera, CheckCircle, AlertCircle, ArrowLeft, Scan } from 'lucide-react';
-import { registerUser, storeBiometricData, storeWebAuthnCredential, getCurrentUser } from '@/lib/store';
+import { Shield, User, Mail, Lock, Camera, CheckCircle, AlertCircle, ArrowLeft, Scan, ChevronRight } from 'lucide-react';
+import { registerUser, storeBiometricData, storeWebAuthnCredential, getCurrentUser, updateAuthTypeAndName } from '@/lib/store';
 import { useRouter } from 'next/navigation';
 
-type Step = 'form' | 'capture' | 'success';
+type Step = 'form' | 'capture' | 'details' | 'success';
 
 export default function RegistroPage() {
     const [step, setStep] = useState<Step>('form');
@@ -14,17 +14,22 @@ export default function RegistroPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [authType, setAuthType] = useState<'cara' | 'huella' | 'fallback'>('fallback');
+
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState('');
     const [scanStatus, setScanStatus] = useState('');
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const router = useRouter();
 
     useEffect(() => {
-        const user = getCurrentUser();
-        if (user) router.push('/dashboard');
+        getCurrentUser().then(user => {
+            if (user) router.push('/dashboard');
+        });
         return () => {
             streamRef.current?.getTracks().forEach(t => t.stop());
         };
@@ -43,7 +48,7 @@ export default function RegistroPage() {
         }
         setLoading(true);
         try {
-            const user = registerUser(username, email, password);
+            const user = await registerUser(username, email, password);
             setUserId(user.id);
             setStep('capture');
         } catch (err: unknown) {
@@ -83,10 +88,11 @@ export default function RegistroPage() {
                     .withFaceDescriptors();
 
                 if (detections.length > 0) {
-                    storeBiometricData(userId, detections[0].descriptor);
+                    await storeBiometricData(userId, detections[0].descriptor);
+                    setAuthType('cara');
                     setScanStatus('¡Rostro capturado exitosamente!');
                     streamRef.current?.getTracks().forEach(t => t.stop());
-                    setTimeout(() => setStep('success'), 1500);
+                    setTimeout(() => setStep('details'), 1500);
                 } else {
                     setScanStatus('No se detectó un rostro. Intente de nuevo.');
                 }
@@ -101,9 +107,10 @@ export default function RegistroPage() {
         try {
             const success = await storeWebAuthnCredential(userId);
             if (success) {
+                setAuthType('huella');
                 setScanStatus('¡Dispositivo registrado exitosamente!');
                 streamRef.current?.getTracks().forEach(t => t.stop());
-                setTimeout(() => setStep('success'), 1500);
+                setTimeout(() => setStep('details'), 1500);
             } else {
                 setScanStatus('No se pudo registrar el dispositivo.');
             }
@@ -115,19 +122,36 @@ export default function RegistroPage() {
 
     const skipCapture = () => {
         streamRef.current?.getTracks().forEach(t => t.stop());
-        setStep('success');
+        setAuthType('fallback');
+        setStep('details');
+    };
+
+    const handleDetailsSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        if (!fullName.trim()) {
+            setError('Por favor ingresa tu nombre completo');
+            return;
+        }
+        setLoading(true);
+        try {
+            await updateAuthTypeAndName(userId, authType, fullName);
+            setStep('success');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Error al guardar detalles');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4">
-            {/* Background */}
             <div className="fixed inset-0">
                 <div className="absolute inset-0 bg-cover bg-center opacity-15" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=1920&q=80')` }} />
                 <div className="absolute inset-0 bg-gradient-to-b from-midnight-900/80 via-midnight-900/95 to-midnight-900" />
             </div>
 
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 w-full max-w-lg">
-                {/* Header */}
                 <div className="text-center mb-8">
                     <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity }} className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-aqua-700 to-brand-700 mb-4 glow-aqua">
                         <Shield className="w-8 h-8 text-white" />
@@ -136,23 +160,24 @@ export default function RegistroPage() {
                     <p className="text-gray-400 text-sm mt-1">Únete a la capacitación de Respeto Vial</p>
                 </div>
 
-                {/* Progress */}
                 <div className="flex items-center justify-center gap-2 mb-6">
-                    {['Datos', 'Biometría', 'Listo'].map((label, i) => (
-                        <div key={label} className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${i <= ['form', 'capture', 'success'].indexOf(step) ? 'bg-aqua-700 text-white' : 'bg-surface-700 text-gray-500'}`}>
-                                {i + 1}
+                    {['Datos', 'Biometría', 'Detalles', 'Listo'].map((label, i) => {
+                        const steps: Step[] = ['form', 'capture', 'details', 'success'];
+                        const isActive = i <= steps.indexOf(step);
+                        return (
+                            <div key={label} className="flex items-center gap-2">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isActive ? 'bg-aqua-700 text-white' : 'bg-surface-700 text-gray-500'}`}>
+                                    {i + 1}
+                                </div>
+                                <span className={`text-xs hidden sm:inline ${isActive ? 'text-aqua-400' : 'text-gray-600'}`}>{label}</span>
+                                {i < 3 && <div className={`w-8 h-0.5 ${i < steps.indexOf(step) ? 'bg-aqua-700' : 'bg-surface-700'}`} />}
                             </div>
-                            <span className={`text-xs hidden sm:inline ${i <= ['form', 'capture', 'success'].indexOf(step) ? 'text-aqua-400' : 'text-gray-600'}`}>{label}</span>
-                            {i < 2 && <div className={`w-8 h-0.5 ${i < ['form', 'capture', 'success'].indexOf(step) ? 'bg-aqua-700' : 'bg-surface-700'}`} />}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
-                {/* Card */}
                 <div className="glass rounded-3xl p-8">
                     <AnimatePresence mode="wait">
-                        {/* Form step */}
                         {step === 'form' && (
                             <motion.form key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={handleRegister} className="space-y-4">
                                 <div>
@@ -190,14 +215,13 @@ export default function RegistroPage() {
                                 )}
                                 <button type="submit" disabled={loading} className="btn-primary w-full mt-2">{loading ? 'Registrando...' : 'Continuar'}</button>
                                 <div className="text-center">
-                                    <a href="/" className="text-sm text-aqua-500 hover:text-aqua-400 inline-flex items-center gap-1">
+                                    <a href="/login" className="text-sm text-aqua-500 hover:text-aqua-400 inline-flex items-center gap-1">
                                         <ArrowLeft className="w-4 h-4" /> Ya tengo cuenta
                                     </a>
                                 </div>
                             </motion.form>
                         )}
 
-                        {/* Capture step */}
                         {step === 'capture' && (
                             <motion.div key="capture" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                                 <div className="text-center mb-4">
@@ -226,7 +250,32 @@ export default function RegistroPage() {
                             </motion.div>
                         )}
 
-                        {/* Success step */}
+                        {step === 'details' && (
+                            <motion.div key="details" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
+                                <div className="text-center mb-6">
+                                    <h2 className="text-xl font-bold text-white mb-2">Completar Datos</h2>
+                                    <p className="text-sm text-gray-400">Por favor, necesitamos tu nombre completo para el certificado de la capacitación.</p>
+                                </div>
+                                <form onSubmit={handleDetailsSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-1.5">Nombre Completo</label>
+                                        <div className="relative">
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                            <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-field pl-11" placeholder="Juan Pérez Gomez" required />
+                                        </div>
+                                    </div>
+                                    {error && (
+                                        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                                            <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+                                        </motion.div>
+                                    )}
+                                    <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50">
+                                        {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finalizar Registro <ChevronRight className="w-5 h-5" /></>}
+                                    </button>
+                                </form>
+                            </motion.div>
+                        )}
+
                         {step === 'success' && (
                             <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-6 space-y-4">
                                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }}>

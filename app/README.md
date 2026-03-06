@@ -1,6 +1,6 @@
 # Respeto Vial Colombia
 
-Aplicación de capacitación virtual obligatoria sobre normas de tránsito en Colombia, con soporte para biometría (WebAuthn / Reconocimiento facial) y panel de administración vía SQLite.
+Aplicación de capacitación virtual obligatoria sobre normas de tránsito en Colombia, con soporte para biometría (WebAuthn / Reconocimiento facial) y panel de administración conectado a PostgreSQL vía Prisma.
 
 ## Ejecución Local
 

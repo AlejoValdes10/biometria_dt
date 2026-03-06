@@ -1,15 +1,26 @@
 import { v4 as uuidv4 } from 'uuid';
+import {
+    createUserAction,
+    loginCredentialAction,
+    loginBiometricAction,
+    loginWebAuthnAction,
+    updateUserAction,
+    getUserAction,
+    getAllUsersAction
+} from '@/app/actions';
 
 // Auth store and utilities for Respeto Vial Colombia
-// Uses localStorage for demo persistence
+// Refactored to use Server Actions for persistence
 
 export interface User {
     id: string;
     username: string;
+    name?: string;
     email: string;
     role: 'user' | 'admin';
     createdDate: string;
     hasBiometric: boolean;
+    authType?: string;
     trainingProgress: TrainingProgress;
     signatureData?: string;
     certificateDate?: string;
@@ -62,112 +73,73 @@ const DEFAULT_PROGRESS: TrainingProgress = {
     completed: false,
 };
 
-// Demo users storage
-function getUsers(): User[] {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem('rv_users');
-    return data ? JSON.parse(data) : [];
-}
+let currentUserCache: User | null = null;
 
-function saveUsers(users: User[]) {
-    localStorage.setItem('rv_users', JSON.stringify(users));
-}
-
-export function getCurrentUser(): User | null {
+export async function getCurrentUser(): Promise<User | null> {
     if (typeof window === 'undefined') return null;
     const id = localStorage.getItem('rv_current_user');
     if (!id) return null;
-    const users = getUsers();
-    return users.find(u => u.id === id) || null;
+    if (currentUserCache?.id === id) return currentUserCache;
+
+    // Fetch from API
+    const res = await getUserAction(id);
+    if (res?.success && res.user) {
+        currentUserCache = res.user as User;
+        return currentUserCache;
+    }
+    return null;
+}
+
+// Keep a synchronous version for immediate layout checks cautiously 
+// where we only care if they are likely logged in.
+export function getCurrentUserSync(): User | null {
+    if (typeof window === 'undefined') return null;
+    const id = localStorage.getItem('rv_current_user');
+    if (!id) return null;
+    return currentUserCache || { id, role: 'user' } as User; // basic stub
 }
 
 export function setCurrentUser(user: User | null) {
+    currentUserCache = user;
     if (user) {
         localStorage.setItem('rv_current_user', user.id);
-        // Update user in storage
-        const users = getUsers();
-        const idx = users.findIndex(u => u.id === user.id);
-        if (idx >= 0) users[idx] = user;
-        else users.push(user);
-        saveUsers(users);
     } else {
         localStorage.removeItem('rv_current_user');
     }
 }
 
-export function registerUser(username: string, email: string, password: string): User {
-    const users = getUsers();
-    if (users.find(u => u.email === email)) {
-        throw new Error('El correo ya está registrado');
-    }
-    if (users.find(u => u.username === username)) {
-        throw new Error('El nombre de usuario no está disponible');
-    }
-
-    const newUser: User = {
-        id: uuidv4(),
-        username,
-        email,
-        role: email === 'admin@ciudadano.co' ? 'admin' : 'user',
-        createdDate: new Date().toISOString(),
-        hasBiometric: false,
-        trainingProgress: { ...DEFAULT_PROGRESS },
-    };
-
-    // Store password hash (demo - just base64)
-    localStorage.setItem(`rv_pwd_${newUser.id}`, btoa(password));
-
-    users.push(newUser);
-    saveUsers(users);
-    setCurrentUser(newUser);
-    return newUser;
+export async function registerUser(username: string, email: string, password: string): Promise<User> {
+    const res = await createUserAction({ username, email, password });
+    if (!res.success) throw new Error(res.error || 'Error al registrar usuario');
+    setCurrentUser(res.user as User);
+    return res.user as User;
 }
 
-export function loginUser(usernameOrEmail: string, password: string): User {
-    const users = getUsers();
-    const user = users.find(u => u.email === usernameOrEmail || u.username === usernameOrEmail);
-    if (!user) throw new Error('Usuario o contraseña incorrectos');
-
-    const stored = localStorage.getItem(`rv_pwd_${user.id}`);
-    if (!stored || atob(stored) !== password) {
-        throw new Error('Usuario o contraseña incorrectos');
-    }
-
-    setCurrentUser(user);
-    return user;
+export async function loginUser(usernameOrEmail: string, password: string): Promise<User> {
+    const res = await loginCredentialAction(usernameOrEmail, password);
+    if (!res.success) throw new Error(res.error || 'Usuario o contraseña incorrectos');
+    setCurrentUser(res.user as User);
+    return res.user as User;
 }
 
-export function loginWithBiometric(faceDescriptor: Float32Array): User | null {
-    const users = getUsers();
-    for (const user of users) {
-        if (!user.hasBiometric) continue;
-        const storedStr = localStorage.getItem(`rv_face_${user.id}`);
-        if (!storedStr) continue;
-
-        const stored = new Float32Array(JSON.parse(storedStr));
-        const distance = euclideanDistance(faceDescriptor, stored);
-        if (distance < 0.6) {
-            setCurrentUser(user);
-            return user;
-        }
+export async function loginWithBiometric(faceDescriptor: Float32Array): Promise<User | null> {
+    const res = await loginBiometricAction(Array.from(faceDescriptor));
+    if (res.success && res.user) {
+        setCurrentUser(res.user as User);
+        return res.user as User;
     }
     return null;
 }
 
-export function storeBiometricData(userId: string, descriptor: Float32Array) {
-    localStorage.setItem(`rv_face_${userId}`, JSON.stringify(Array.from(descriptor)));
-    const users = getUsers();
-    const user = users.find(u => u.id === userId);
-    if (user) {
-        user.hasBiometric = true;
-        saveUsers(users);
-        setCurrentUser(user);
+export async function storeBiometricData(userId: string, descriptor: Float32Array) {
+    const res = await updateUserAction(userId, {
+        hasBiometric: true,
+        faceDescriptor: JSON.stringify(Array.from(descriptor))
+    });
+    if (res.success && res.user) {
+        setCurrentUser(res.user as User);
     }
 }
-
-// Convert string to Uint8Array safely
-const bufferDecode = (value: string) => Uint8Array.from(atob(value), c => c.charCodeAt(0));
-const bufferEncode = (value: ArrayBuffer) => btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(value))));
 
 export async function storeWebAuthnCredential(userId: string) {
     if (!window.PublicKeyCredential) throw new Error('WebAuthn no soportado');
@@ -193,15 +165,14 @@ export async function storeWebAuthnCredential(userId: string) {
     }) as PublicKeyCredential;
 
     if (credential) {
-        localStorage.setItem(`rv_webauthn_${userId}`, credential.id);
-        const users = getUsers();
-        const user = users.find(u => u.id === userId);
-        if (user) {
-            user.hasBiometric = true;
-            saveUsers(users);
-            setCurrentUser(user);
+        const res = await updateUserAction(userId, {
+            hasBiometric: true,
+            webAuthnId: credential.id
+        });
+        if (res.success && res.user) {
+            setCurrentUser(res.user as User);
+            return true;
         }
-        return true;
     }
     return false;
 }
@@ -223,13 +194,10 @@ export async function loginWithWebAuthn(): Promise<User | null> {
         }) as PublicKeyCredential;
 
         if (assertion) {
-            const users = getUsers();
-            // Find user holding this credential
-            for (const user of users) {
-                if (localStorage.getItem(`rv_webauthn_${user.id}`) === assertion.id) {
-                    setCurrentUser(user);
-                    return user;
-                }
+            const res = await loginWebAuthnAction(assertion.id);
+            if (res.success && res.user) {
+                setCurrentUser(res.user as User);
+                return res.user as User;
             }
         }
     } catch (e) {
@@ -238,105 +206,111 @@ export async function loginWithWebAuthn(): Promise<User | null> {
     return null;
 }
 
-function euclideanDistance(a: Float32Array, b: Float32Array): number {
-    let sum = 0;
-    for (let i = 0; i < a.length; i++) {
-        sum += (a[i] - b[i]) ** 2;
-    }
-    return Math.sqrt(sum);
+export async function updateAuthTypeAndName(userId: string, authType: string, name: string): Promise<User> {
+    const res = await updateUserAction(userId, { authType, name });
+    if (!res.success) throw new Error(res.error || 'Error actualizando usuario');
+    setCurrentUser(res.user as User);
+    return res.user as User;
 }
 
-export function updateTrainingProgress(userId: string, progress: Partial<TrainingProgress>) {
-    const users = getUsers();
-    const user = users.find(u => u.id === userId);
-    if (user) {
-        user.trainingProgress = { ...user.trainingProgress, ...progress };
-        user.trainingProgress.level = getLevel(user.trainingProgress.totalPoints);
-        saveUsers(users);
-        setCurrentUser(user);
+export async function updateTrainingProgress(userId: string, progress: Partial<TrainingProgress>) {
+    const u = await getCurrentUser();
+    if (!u) return;
+
+    const newProgress = { ...u.trainingProgress, ...progress };
+    newProgress.level = getLevel(newProgress.totalPoints);
+
+    const res = await updateUserAction(userId, {
+        level: newProgress.level,
+        completedModules: JSON.stringify(newProgress.completedModules),
+        moduleScores: JSON.stringify(newProgress.moduleScores),
+        totalPoints: newProgress.totalPoints,
+        badges: JSON.stringify(newProgress.badges),
+        completed: newProgress.completed,
+    });
+
+    if (res.success && res.user) {
+        setCurrentUser(res.user as User);
     }
 }
 
-export function completeModule(userId: string, moduleId: number, score: number) {
-    const users = getUsers();
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
+export async function completeModule(userId: string, moduleId: number, score: number) {
+    const u = await getCurrentUser();
+    if (!u) return;
 
-    if (!user.trainingProgress.completedModules.includes(moduleId)) {
-        user.trainingProgress.completedModules.push(moduleId);
+    const p = { ...u.trainingProgress };
+
+    if (!p.completedModules.includes(moduleId)) {
+        p.completedModules.push(moduleId);
     }
-    user.trainingProgress.moduleScores[moduleId] = score;
-    user.trainingProgress.totalPoints += score;
-    user.trainingProgress.level = getLevel(user.trainingProgress.totalPoints);
+    p.moduleScores[moduleId] = score;
+    p.totalPoints += score;
+    p.level = getLevel(p.totalPoints);
 
-    if (user.trainingProgress.completedModules.length >= 3) {
-        user.trainingProgress.completed = true;
-        if (!user.trainingProgress.badges.includes('Capacitación Completa')) {
-            user.trainingProgress.badges.push('Capacitación Completa');
+    if (p.completedModules.length >= 3) {
+        p.completed = true;
+        if (!p.badges.includes('Capacitación Completa')) {
+            p.badges.push('Capacitación Completa');
         }
     }
 
-    // Award badges
-    if (user.trainingProgress.totalPoints >= 100 && !user.trainingProgress.badges.includes('Primer Centenario')) {
-        user.trainingProgress.badges.push('Primer Centenario');
+    if (p.totalPoints >= 100 && !p.badges.includes('Primer Centenario')) {
+        p.badges.push('Primer Centenario');
     }
-    if (user.trainingProgress.totalPoints >= 300 && !user.trainingProgress.badges.includes('Medio Millar')) {
-        user.trainingProgress.badges.push('Medio Millar');
+    if (p.totalPoints >= 300 && !p.badges.includes('Medio Millar')) {
+        p.badges.push('Medio Millar');
     }
-    if (Object.values(user.trainingProgress.moduleScores).some(s => s >= 180) && !user.trainingProgress.badges.includes('Puntuación Perfecta')) {
-        user.trainingProgress.badges.push('Puntuación Perfecta');
+    if (Object.values(p.moduleScores).some(s => s >= 180) && !p.badges.includes('Puntuación Perfecta')) {
+        p.badges.push('Puntuación Perfecta');
     }
 
-    saveUsers(users);
-    setCurrentUser(user);
+    const res = await updateUserAction(userId, {
+        level: p.level,
+        completedModules: JSON.stringify(p.completedModules),
+        moduleScores: JSON.stringify(p.moduleScores),
+        totalPoints: p.totalPoints,
+        badges: JSON.stringify(p.badges),
+        completed: p.completed,
+    });
+
+    if (res.success && res.user) {
+        setCurrentUser(res.user as User);
+    }
 }
 
-export function storeSignature(userId: string, signatureDataUrl: string) {
-    const users = getUsers();
-    const user = users.find(u => u.id === userId);
-    if (user) {
-        user.signatureData = signatureDataUrl;
-        user.certificateDate = new Date().toISOString();
-        saveUsers(users);
-        setCurrentUser(user);
+export async function storeSignature(userId: string, signatureDataUrl: string) {
+    const res = await updateUserAction(userId, { signature: signatureDataUrl });
+    if (res.success && res.user) {
+        setCurrentUser(res.user as User);
     }
 }
 
 export function logout() {
+    currentUserCache = null;
     localStorage.removeItem('rv_current_user');
 }
 
-export function getAllUsers(): User[] {
-    return getUsers();
+export async function getAllUsers(): Promise<User[]> {
+    const users = await getAllUsersAction();
+    return users as User[];
 }
 
-export function resetUserTraining(userId: string) {
-    const users = getUsers();
-    const user = users.find(u => u.id === userId);
-    if (user) {
-        user.trainingProgress = { ...DEFAULT_PROGRESS };
-        user.signatureData = undefined;
-        user.certificateDate = undefined;
-        saveUsers(users);
+export async function resetUserTraining(userId: string) {
+    const res = await updateUserAction(userId, {
+        level: 'Novato',
+        completedModules: '[]',
+        moduleScores: '{}',
+        totalPoints: 0,
+        badges: '[]',
+        completed: false,
+        signature: null,
+    });
+    if (res.success && res.user) {
+        setCurrentUser(res.user as User);
     }
 }
 
-// Initialize demo admin account
-export function initDemoData() {
-    if (typeof window === 'undefined') return;
-    const users = getUsers();
-    if (!users.find(u => u.email === 'admin@ciudadano.co')) {
-        const admin: User = {
-            id: uuidv4(),
-            username: 'admin',
-            email: 'admin@ciudadano.co',
-            role: 'admin',
-            createdDate: new Date().toISOString(),
-            hasBiometric: false,
-            trainingProgress: { ...DEFAULT_PROGRESS, completed: true },
-        };
-        localStorage.setItem(`rv_pwd_${admin.id}`, btoa('admin123'));
-        users.push(admin);
-        saveUsers(users);
-    }
+export async function initDemoData() {
+    // Only fetch checking or handle on backend.
+    // Kept empty in frontend. Use a seed action if needed.
 }

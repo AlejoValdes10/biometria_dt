@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { Shield, Trash2, Edit2, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { getAllUsersAction, updateUserAction, deleteUserAction } from '@/app/actions';
 
 interface User {
     id: string;
-    name: string;
+    name?: string | null;
     email: string;
     role: string;
-    progress: number;
+    totalPoints: number;
     completed: boolean;
-    createdAt: string;
+    createdAt: Date;
+    authType?: string | null;
+    signature?: string | null;
+    level: string;
 }
 
 export default function AdminPage() {
@@ -30,12 +34,11 @@ export default function AdminPage() {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch('/api/users');
-            if (!res.ok) throw new Error('Error al cargar usuarios');
-            const data = await res.json();
-            setUsers(data);
+            const data = await getAllUsersAction();
+            // Map data correctly since dates might not be Date objects from Server Action directly
+            setUsers(data as any);
         } catch (e: any) {
-            setError(e.message);
+            setError(e.message || 'Error cargando usuarios');
         } finally {
             setLoading(false);
         }
@@ -51,13 +54,14 @@ export default function AdminPage() {
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedUser(null);
+        setError('');
     };
 
     const handleDelete = async () => {
         if (!selectedUser) return;
         try {
-            const res = await fetch(`/api/users?id=${selectedUser.id}`, { method: 'DELETE' });
-            if (!res.ok) throw new Error('Error al eliminar');
+            const res = await deleteUserAction(selectedUser.id);
+            if (!res.success) throw new Error(res.error);
             setUsers(users.filter(u => u.id !== selectedUser.id));
             closeModal();
         } catch (e: any) {
@@ -69,14 +73,18 @@ export default function AdminPage() {
         e.preventDefault();
         if (!selectedUser) return;
         try {
-            const res = await fetch('/api/users', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(editData),
-            });
-            if (!res.ok) throw new Error('Error al actualizar');
-            const updatedUser = await res.json();
-            setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+            const dataToUpdate = {
+                name: editData.name,
+                email: editData.email,
+                role: editData.role,
+                authType: editData.authType,
+                totalPoints: Number(editData.totalPoints),
+            };
+            const res = await updateUserAction(selectedUser.id, dataToUpdate);
+            if (!res.success) throw new Error(res.error);
+
+            // Re-fetch users or update locale
+            await fetchUsers();
             closeModal();
         } catch (e: any) {
             alert(e.message);
@@ -84,11 +92,11 @@ export default function AdminPage() {
     };
 
     return (
-        <div className="min-h-screen bg-surface-900 text-white p-8">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-surface-900 text-white p-6 sm:p-8">
+            <div className="max-w-7xl mx-auto">
                 <div className="flex items-center gap-4 mb-8">
                     <Shield className="w-10 h-10 text-aqua-500" />
-                    <h1 className="text-3xl font-bold">Panel de Administración</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold">Panel de Administración</h1>
                 </div>
 
                 {error && (
@@ -97,41 +105,42 @@ export default function AdminPage() {
                     </div>
                 )}
 
-                <div className="bg-surface-800 rounded-2xl overflow-hidden border border-white/5">
+                <div className="bg-surface-800 rounded-2xl overflow-hidden border border-white/5 shadow-xl">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-left whitespace-nowrap">
                             <thead className="bg-surface-700/50">
                                 <tr>
                                     <th className="p-4 font-semibold text-gray-300">ID</th>
                                     <th className="p-4 font-semibold text-gray-300">Nombre</th>
                                     <th className="p-4 font-semibold text-gray-300">Email</th>
-                                    <th className="p-4 font-semibold text-gray-300">Rol</th>
-                                    <th className="p-4 font-semibold text-gray-300">Estado</th>
+                                    <th className="p-4 font-semibold text-gray-300">AuthType</th>
+                                    <th className="p-4 font-semibold text-gray-300">Progreso</th>
+                                    <th className="p-4 font-semibold text-gray-300 text-center">Firma</th>
                                     <th className="p-4 font-semibold text-gray-300 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={6} className="p-8 text-center text-gray-500">
+                                        <td colSpan={7} className="p-8 text-center text-gray-500">
                                             Cargando usuarios...
                                         </td>
                                     </tr>
                                 ) : users.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="p-8 text-center text-gray-500">
+                                        <td colSpan={7} className="p-8 text-center text-gray-500">
                                             No hay usuarios registrados.
                                         </td>
                                     </tr>
                                 ) : (
-                                    users.map(user => (
+                                    users.filter(Boolean).map(user => (
                                         <tr key={user.id} className="hover:bg-white/5 transition-colors">
                                             <td className="p-4 text-xs font-mono text-gray-500">{user.id.slice(0, 8)}...</td>
-                                            <td className="p-4 font-medium">{user.name}</td>
+                                            <td className="p-4 font-medium">{user.name || <span className="text-gray-500 italic">No registrado</span>}</td>
                                             <td className="p-4 text-gray-400">{user.email}</td>
                                             <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                                    {user.role}
+                                                <span className="px-2 py-1 bg-surface-700 rounded-lg text-xs capitalize text-aqua-300">
+                                                    {user.authType || 'N/A'}
                                                 </span>
                                             </td>
                                             <td className="p-4">
@@ -142,9 +151,16 @@ export default function AdminPage() {
                                                         <AlertCircle className="w-4 h-4 text-orange-500" />
                                                     )}
                                                     <span className="text-sm">
-                                                        {user.completed ? 'Completado' : `${user.progress}%`}
+                                                        {user.completed ? 'Completo' : `${user.totalPoints} pts`}
                                                     </span>
                                                 </div>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                {user.signature ? (
+                                                    <span className="inline-flex px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">Sí</span>
+                                                ) : (
+                                                    <span className="inline-flex px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded-full">No</span>
+                                                )}
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex justify-end gap-2">
@@ -173,7 +189,7 @@ export default function AdminPage() {
 
             {isModalOpen && selectedUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-surface-800 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden">
+                    <div className="bg-surface-800 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
                         <div className="flex items-center justify-between p-4 border-b border-white/10">
                             <h3 className="text-lg font-semibold">
                                 {actionType === 'edit' ? 'Editar Usuario' : 'Eliminar Usuario'}
@@ -187,7 +203,7 @@ export default function AdminPage() {
                             {actionType === 'delete' ? (
                                 <div>
                                     <p className="text-gray-300 mb-6">
-                                        ¿Estás seguro que deseas eliminar al usuario <strong className="text-white">{selectedUser.name}</strong> ({selectedUser.email})?
+                                        ¿Estás seguro que deseas eliminar al usuario <strong className="text-white">{selectedUser.name || selectedUser.email}</strong>?
                                         Esta acción no se puede deshacer.
                                     </p>
                                     <div className="flex justify-end gap-3">
@@ -219,16 +235,39 @@ export default function AdminPage() {
                                             onChange={e => setEditData({ ...editData, email: e.target.value })}
                                         />
                                     </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm text-gray-400 mb-1">Rol</label>
+                                            <select
+                                                className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-aqua-500"
+                                                value={editData.role || 'user'}
+                                                onChange={e => setEditData({ ...editData, role: e.target.value })}
+                                            >
+                                                <option value="user">User</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-gray-400 mb-1">Auth Type</label>
+                                            <select
+                                                className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-aqua-500"
+                                                value={editData.authType || 'fallback'}
+                                                onChange={e => setEditData({ ...editData, authType: e.target.value })}
+                                            >
+                                                <option value="fallback">Fallback</option>
+                                                <option value="cara">Cara</option>
+                                                <option value="huella">Huella</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-1">Rol</label>
-                                        <select
+                                        <label className="block text-sm text-gray-400 mb-1">Puntos Totales (Progreso)</label>
+                                        <input
+                                            type="number"
                                             className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-aqua-500"
-                                            value={editData.role || 'user'}
-                                            onChange={e => setEditData({ ...editData, role: e.target.value })}
-                                        >
-                                            <option value="user">User</option>
-                                            <option value="admin">Admin</option>
-                                        </select>
+                                            value={editData.totalPoints || 0}
+                                            onChange={e => setEditData({ ...editData, totalPoints: parseInt(e.target.value) || 0 })}
+                                        />
                                     </div>
                                     <div className="flex justify-end gap-3 mt-6">
                                         <button type="button" onClick={closeModal} className="px-4 py-2 rounded-xl bg-surface-700 hover:bg-surface-600 transition-colors">

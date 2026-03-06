@@ -10,13 +10,27 @@ datasource db {
 
 model User {
   id              String   @id @default(uuid())
-  name            String
+  username        String   @unique
+  name            String?
   email           String   @unique
+  password        String   // Hashed or plain (for demo)
   role            String   @default("user") // "user" or "admin"
   progress        Int      @default(0)
   signature       String?
   completed       Boolean  @default(false)
   
   hasBiometric    Boolean  @default(false)
+  authType        String?  // "cara", "huella", "fallback", etc.
+  faceDescriptor  String?  // Stored as JSON string array
+  webAuthnId      String?  // Stored credential id
+  
+  // Training progress specific
+  level           String   @default("Novato")
+  completedModules String? @default("[]") // JSON array
+  moduleScores    String?  @default("{}") // JSON object
+  totalPoints     Int      @default(0)
+  badges          String?  @default("[]") // JSON array
+
   createdAt       DateTime @default(now())
 }
+

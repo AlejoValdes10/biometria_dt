@@ -158,7 +158,7 @@ export async function storeWebAuthnCredential(userId: string) {
                 displayName: userId
             },
             pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-            authenticatorSelection: { userVerification: 'required' },
+            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'discouraged' },
             timeout: 60000,
             attestation: 'none'
         }
@@ -188,7 +188,7 @@ export async function loginWithWebAuthn(): Promise<User | null> {
             publicKey: {
                 challenge,
                 rpId: window.location.hostname,
-                userVerification: 'required',
+                userVerification: 'discouraged',
                 timeout: 60000
             }
         }) as PublicKeyCredential;

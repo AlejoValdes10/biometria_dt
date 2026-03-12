@@ -6,10 +6,11 @@ import { Shield, User, Mail, Lock, Camera, CheckCircle, AlertCircle, ArrowLeft, 
 import { registerUser, storeBiometricData, storeWebAuthnCredential, getCurrentUser, updateAuthTypeAndName } from '@/lib/store';
 import { useRouter } from 'next/navigation';
 
-type Step = 'form' | 'capture' | 'details' | 'success';
+type Step = 'welcome' | 'form' | 'capture' | 'details' | 'success';
 
 export default function RegistroPage() {
-    const [step, setStep] = useState<Step>('form');
+    const [step, setStep] = useState<Step>('welcome');
+    const [authPreference, setAuthPreference] = useState<'biometric' | 'credentials'>('credentials');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -50,7 +51,12 @@ export default function RegistroPage() {
         try {
             const user = await registerUser(username, email, password);
             setUserId(user.id);
-            setStep('capture');
+            if (authPreference === 'biometric') {
+                setStep('capture');
+            } else {
+                setAuthType('fallback');
+                setStep('details');
+            }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Error al registrar');
         } finally {
@@ -178,6 +184,37 @@ export default function RegistroPage() {
 
                 <div className="glass rounded-3xl p-8">
                     <AnimatePresence mode="wait">
+                        {step === 'welcome' && (
+                            <motion.div key="welcome" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
+                                <h2 className="text-xl font-bold text-white text-center mb-6">Elige cómo registrarte</h2>
+                                <button onClick={() => { setAuthPreference('biometric'); setStep('form'); }} className="w-full group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, rgba(0,191,165,0.15), rgba(30,64,175,0.15))', border: '1px solid rgba(0,191,165,0.2)' }}>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-aqua-700 to-brand-700 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-aqua-700/25 transition-shadow">
+                                            <Scan className="w-7 h-7 text-white" />
+                                        </div>
+                                        <div className="text-left flex-1">
+                                            <p className="font-semibold text-white">Con cara/huella</p>
+                                            <p className="text-xs text-gray-400">Reconocimiento facial o huella</p>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-aqua-500 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                </button>
+                                <button onClick={() => { setAuthPreference('credentials'); setStep('form'); }} className="w-full group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02]" style={{ background: 'rgba(30,41,59,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-xl bg-surface-700 flex items-center justify-center"><User className="w-7 h-7 text-gray-300" /></div>
+                                        <div className="text-left flex-1">
+                                            <p className="font-semibold text-white">Con email/contraseña</p>
+                                            <p className="text-xs text-gray-400">Acceso tradicional</p>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                </button>
+                                <div className="text-center pt-4 border-t border-white/5">
+                                    <p className="text-gray-400 text-sm">¿Ya tienes cuenta? <a href="/login" className="text-aqua-500 hover:text-aqua-400 font-medium transition-colors">Inicia sesión</a></p>
+                                </div>
+                            </motion.div>
+                        )}
+
                         {step === 'form' && (
                             <motion.form key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={handleRegister} className="space-y-4">
                                 <div>

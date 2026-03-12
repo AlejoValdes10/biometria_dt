@@ -151,7 +151,7 @@ export default function LoginPage() {
                                             <Scan className="w-7 h-7 text-white" />
                                         </div>
                                         <div className="text-left flex-1">
-                                            <p className="font-semibold text-white">Iniciar con biometría</p>
+                                            <p className="font-semibold text-white">Con cara/huella</p>
                                             <p className="text-xs text-gray-400">Reconocimiento facial, iris o huella</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-aqua-500 group-hover:translate-x-1 transition-transform" />
@@ -161,7 +161,7 @@ export default function LoginPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="w-14 h-14 rounded-xl bg-surface-700 flex items-center justify-center"><User className="w-7 h-7 text-gray-300" /></div>
                                         <div className="text-left flex-1">
-                                            <p className="font-semibold text-white">Usuario y contraseña</p>
+                                            <p className="font-semibold text-white">Con email/contraseña</p>
                                             <p className="text-xs text-gray-400">Acceso tradicional</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />

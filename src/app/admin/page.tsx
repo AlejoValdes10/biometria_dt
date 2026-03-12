@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Trash2, Edit2, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Shield, Trash2, Edit2, X, CheckCircle, AlertCircle, Eye } from 'lucide-react';
 import { getAllUsersAction, updateUserAction, deleteUserAction } from '@/app/actions';
 
 interface User {
@@ -26,7 +26,7 @@ export default function AdminPage() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [actionType, setActionType] = useState<'edit' | 'delete'>('edit');
+    const [actionType, setActionType] = useState<'edit' | 'delete' | 'view'>('edit');
 
     const [editData, setEditData] = useState<Partial<User> & { totalPoints?: number }>({});
 
@@ -46,7 +46,7 @@ export default function AdminPage() {
         }
     };
 
-    const openModal = (user: User, action: 'edit' | 'delete') => {
+    const openModal = (user: User, action: 'edit' | 'delete' | 'view') => {
         setSelectedUser(user);
         setActionType(action);
         if (action === 'edit') setEditData({ ...user, totalPoints: user.trainingProgress?.totalPoints || 0 });
@@ -117,6 +117,7 @@ export default function AdminPage() {
                                     <th className="p-4 font-semibold text-gray-300">Email</th>
                                     <th className="p-4 font-semibold text-gray-300">AuthType</th>
                                     <th className="p-4 font-semibold text-gray-300">Progreso</th>
+                                    <th className="p-4 font-semibold text-gray-300 text-center">Completado</th>
                                     <th className="p-4 font-semibold text-gray-300 text-center">Firma</th>
                                     <th className="p-4 font-semibold text-gray-300 text-right">Acciones</th>
                                 </tr>
@@ -146,15 +147,15 @@ export default function AdminPage() {
                                                 </span>
                                             </td>
                                             <td className="p-4">
-                                                <div className="flex items-center gap-2">
+                                                <span className="text-sm">{user.trainingProgress?.totalPoints || 0} pts</span>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <div className="flex items-center justify-center gap-2">
                                                     {user.trainingProgress?.completed ? (
                                                         <CheckCircle className="w-4 h-4 text-green-500" />
                                                     ) : (
                                                         <AlertCircle className="w-4 h-4 text-orange-500" />
                                                     )}
-                                                    <span className="text-sm">
-                                                        {user.trainingProgress?.completed ? 'Completo' : `${user.trainingProgress?.totalPoints || 0} pts`}
-                                                    </span>
                                                 </div>
                                             </td>
                                             <td className="p-4 text-center">
@@ -166,6 +167,12 @@ export default function AdminPage() {
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => openModal(user, 'view')}
+                                                        className="p-2 hover:bg-blue-500/20 rounded-lg transition-colors text-blue-400 hover:text-blue-300"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
                                                     <button
                                                         onClick={() => openModal(user, 'edit')}
                                                         className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
@@ -194,7 +201,7 @@ export default function AdminPage() {
                     <div className="bg-surface-800 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
                         <div className="flex items-center justify-between p-4 border-b border-white/10">
                             <h3 className="text-lg font-semibold">
-                                {actionType === 'edit' ? 'Editar Usuario' : 'Eliminar Usuario'}
+                                {actionType === 'edit' ? 'Editar Usuario' : actionType === 'delete' ? 'Eliminar Usuario' : 'Ver Detalles'}
                             </h3>
                             <button onClick={closeModal} className="p-1 hover:bg-white/10 rounded-lg text-gray-400">
                                 <X className="w-5 h-5" />
@@ -202,7 +209,29 @@ export default function AdminPage() {
                         </div>
 
                         <div className="p-6">
-                            {actionType === 'delete' ? (
+                            {actionType === 'view' ? (
+                                <div className="space-y-4">
+                                    <div className="bg-surface-900 border border-white/10 p-4 rounded-xl">
+                                        <p className="text-sm text-gray-400">ID</p>
+                                        <p className="font-mono">{selectedUser.id}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-surface-900 border border-white/10 p-4 rounded-xl"><p className="text-sm text-gray-400">Nombre</p><p>{selectedUser.name || 'N/A'}</p></div>
+                                        <div className="bg-surface-900 border border-white/10 p-4 rounded-xl"><p className="text-sm text-gray-400">Email</p><p>{selectedUser.email}</p></div>
+                                        <div className="bg-surface-900 border border-white/10 p-4 rounded-xl"><p className="text-sm text-gray-400">Rol</p><p className="capitalize">{selectedUser.role}</p></div>
+                                        <div className="bg-surface-900 border border-white/10 p-4 rounded-xl"><p className="text-sm text-gray-400">AuthType</p><p className="capitalize text-aqua-400">{selectedUser.authType || 'N/A'}</p></div>
+                                    </div>
+                                    <div className="bg-surface-900 border border-white/10 p-4 rounded-xl">
+                                        <p className="text-sm text-gray-400 mb-2">Progreso de Capacitación</p>
+                                        <div className="flex justify-between text-sm"><span>Puntos Totales:</span><span className="font-medium text-aqua-400">{selectedUser.trainingProgress?.totalPoints || 0}</span></div>
+                                        <div className="flex justify-between text-sm mt-1"><span>Estado:</span><span>{selectedUser.trainingProgress?.completed ? 'Completado' : 'Pendiente'}</span></div>
+                                        <div className="flex justify-between text-sm mt-1"><span>Firma Digital:</span><span>{selectedUser.signatureData ? 'Capturada' : 'No Capturada'}</span></div>
+                                    </div>
+                                    <div className="flex justify-end mt-4">
+                                        <button onClick={closeModal} className="px-4 py-2 rounded-xl bg-surface-700 hover:bg-surface-600 transition-colors text-white">Cerrar</button>
+                                    </div>
+                                </div>
+                            ) : actionType === 'delete' ? (
                                 <div>
                                     <p className="text-gray-300 mb-6">
                                         ¿Estás seguro que deseas eliminar al usuario <strong className="text-white">{selectedUser.name || selectedUser.email}</strong>?

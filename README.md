@@ -36,11 +36,10 @@ Esta aplicación está configurada para desplegarse fácilmente en Vercel utiliz
 2. **Copia la connection string**: En el dashboard de Neon, copia tu cadena de conexión (Ej: `postgresql://user:password@hostname/dbname?sslmode=require`).
 3. **Crea un proyecto en Vercel**: Conecta tu repositorio de GitHub desde el panel de Vercel.
 4. **Configura el Proyecto (¡Muy Importante!)**:
-   - **Root Directory**: Escribe `app` (o `.` si tu `package.json` está en la raíz directamente en GitHub. Asegúrate de configurar esto según la estructura).
+   - **Root Directory**: Déjalo vacío o escribe `.` (el proyecto está en la raíz).
    - **Build Command**: Sobrescribe el comando por defecto y escribe: `npx prisma generate && next build`
 5. **Variables de Entorno**: Añade a Vercel las siguientes variables (*Environment Variables*):
    - `DATABASE_URL` = (Pega aquí la connection string de Neon)
-   - `DIRECT_URL` = (Pega aquí la misma connection string de Neon)
 6. **Despliega**: Finalmente dale a Deploy. Vercel ejecutará los comandos automáticamente.
 
 > **Sincronización de Base de Datos:** Recuerda ejecutar `npx prisma db push` apuntando a tu URL en Neon para crear las tablas antes o inmediatamente después de desplegar.

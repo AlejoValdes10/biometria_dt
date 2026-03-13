@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Fingerprint, Eye, User, Lock, Mail, ChevronRight, Scan, AlertCircle, Volume2 } from 'lucide-react';
-import { getCurrentUser, loginUser, loginWithBiometric, loginWithWebAuthn, type User as UserType, updateAuthTypeAndName } from '@/lib/store';
+import { loginUser, loginWithBiometric, loginWithWebAuthn, type User as UserType, updateAuthTypeAndName } from '@/lib/store';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -31,6 +31,8 @@ export default function LoginPage() {
             delay: Math.random() * 5,
             yNode: Math.random() * -500
         })));
+        // NOTE: We intentionally do NOT auto-redirect here so the landing
+        // page is always seen first and the user chooses to go to login.
     }, []);
 
     const speakGreeting = () => {
@@ -137,22 +139,22 @@ export default function LoginPage() {
                         <Shield className="w-10 h-10 text-white" />
                     </motion.div>
                     <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-2">Respeto Vial Colombia</h1>
-                    <p className="text-aqua-500 font-medium text-lg">Respeto Vial</p>
+                    <p className="text-aqua-500 font-medium text-lg">Seguridad y Respeto en la Vía</p>
                 </motion.div>
 
                 <motion.div layout className="glass rounded-3xl p-8 shadow-2xl">
                     <AnimatePresence mode="wait">
                         {mode === 'welcome' && (
                             <motion.div key="welcome" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }} className="space-y-4">
-                                <h2 className="text-xl font-bold text-white text-center mb-6">Inicia sesión</h2>
+                                <h2 className="text-xl font-bold text-white text-center mb-6">Iniciar sesión</h2>
                                 <button onClick={() => setMode('biometric')} className="w-full group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, rgba(0,191,165,0.15), rgba(30,64,175,0.15))', border: '1px solid rgba(0,191,165,0.2)' }}>
                                     <div className="flex items-center gap-4">
                                         <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-aqua-700 to-brand-700 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-aqua-700/25 transition-shadow">
                                             <Scan className="w-7 h-7 text-white" />
                                         </div>
                                         <div className="text-left flex-1">
-                                            <p className="font-semibold text-white">Iniciar sesión con biometría (cara o huella)</p>
-                                            <p className="text-xs text-gray-400">Reconocimiento facial o huella</p>
+                                            <p className="font-semibold text-white">Iniciar sesión con biometría</p>
+                                            <p className="text-xs text-gray-400">Cara o huella digital</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-aqua-500 group-hover:translate-x-1 transition-transform" />
                                     </div>
@@ -162,13 +164,16 @@ export default function LoginPage() {
                                         <div className="w-14 h-14 rounded-xl bg-surface-700 flex items-center justify-center"><User className="w-7 h-7 text-gray-300" /></div>
                                         <div className="text-left flex-1">
                                             <p className="font-semibold text-white">Iniciar sesión con credenciales normales</p>
-                                            <p className="text-xs text-gray-400">Acceso tradicional</p>
+                                            <p className="text-xs text-gray-400">Email y contraseña</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                     </div>
                                 </button>
                                 <div className="text-center pt-4 border-t border-white/5">
                                     <p className="text-gray-400 text-sm">¿No tienes cuenta? <a href="/registro" className="text-aqua-500 hover:text-aqua-400 font-medium transition-colors">Regístrate aquí</a></p>
+                                </div>
+                                <div className="text-center">
+                                    <a href="/" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">← Volver al inicio</a>
                                 </div>
                             </motion.div>
                         )}
@@ -190,14 +195,14 @@ export default function LoginPage() {
                                         <label className="block text-sm text-gray-400 mb-1.5">Usuario o correo</label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="input-field pl-12" placeholder="usuario@correo.com" required />
+                                            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="input-field pl-10" placeholder="usuario@correo.com" required />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm text-gray-400 mb-1.5">Contraseña</label>
                                         <div className="relative">
                                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input-field pl-12" placeholder="••••••••" required />
+                                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input-field pl-10" placeholder="••••••••" required />
                                         </div>
                                     </div>
                                     {error && (
@@ -226,7 +231,7 @@ export default function LoginPage() {
                                         <label className="block text-sm text-gray-400 mb-1.5">Nombre Completo</label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-field pl-12" placeholder="Juan Pérez Gomez" required />
+                                            <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-field pl-10" placeholder="Juan Pérez Gomez" required />
                                         </div>
                                     </div>
                                     {error && (
@@ -262,17 +267,18 @@ function BiometricLogin({ onBack, onSuccess, onError }: { onBack: () => void; on
         setStatusMsg('Cargando modelos de reconocimiento facial...');
         try {
             const faceapi = await import('@vladmandic/face-api');
-            // Fixed paths to use absolute /models/ reference correctly with trailing slash
-            await faceapi.nets.tinyFaceDetector.loadFromUri('/models/');
-            await faceapi.nets.faceLandmark68Net.loadFromUri('/models/');
-            await faceapi.nets.faceRecognitionNet.loadFromUri('/models/');
+            // Use root-relative path — works correctly on Vercel
+            const modelPath = '/models';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
 
             setStatus('scanning');
             setStatusMsg('Modelos cargados. Posicione su rostro frente a la cámara.');
 
             if (!navigator || !navigator.mediaDevices) {
                 setStatus('error');
-                setStatusMsg('La cámara no está disponible (mediaDevices undefined). Asegúrese de usar HTTPS.');
+                setStatusMsg('La cámara no está disponible. Asegúrese de usar HTTPS.');
                 return;
             }
             if (!navigator.mediaDevices.getUserMedia) {
@@ -281,7 +287,7 @@ function BiometricLogin({ onBack, onSuccess, onError }: { onBack: () => void; on
                 return;
             }
 
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
             const video = document.getElementById('biometric-video') as HTMLVideoElement;
             if (video) {
                 video.srcObject = stream;
@@ -292,6 +298,7 @@ function BiometricLogin({ onBack, onSuccess, onError }: { onBack: () => void; on
                         stream.getTracks().forEach(t => t.stop());
                         if (detections.length > 0) {
                             const descriptor = detections[0].descriptor;
+                            const { loginWithBiometric } = await import('@/lib/store');
                             const user = await loginWithBiometric(descriptor);
                             if (user) {
                                 onSuccess(user, 'cara');
@@ -312,7 +319,7 @@ function BiometricLogin({ onBack, onSuccess, onError }: { onBack: () => void; on
         } catch (err) {
             console.error('Face API error:', err);
             setStatus('no-support');
-            setStatusMsg('Los modelos de reconocimiento facial no están disponibles.');
+            setStatusMsg('Los modelos de reconocimiento facial no están disponibles. Intente con huella o credenciales.');
         }
     };
 
@@ -322,18 +329,39 @@ function BiometricLogin({ onBack, onSuccess, onError }: { onBack: () => void; on
                 setStatusMsg('WebAuthn no disponible en este navegador.');
                 return;
             }
-            setStatusMsg('Esperando autenticación del dispositivo...');
-            const user = await loginWithWebAuthn();
-            if (user) {
-                setStatusMsg('¡Autenticado con éxito!');
-                onSuccess(user, 'huella');
-            } else {
-                setStatus('error');
-                setStatusMsg('No se pudo autenticar o usuario no registrado.');
+            setStatusMsg('Esperando autenticación biométrica del dispositivo...');
+
+            const challenge = new Uint8Array(32);
+            crypto.getRandomValues(challenge);
+
+            // Use navigator.credentials.get directly with platform authenticator
+            // userVerification: 'preferred' prompts fingerprint/faceID without passkey
+            const assertion = await navigator.credentials.get({
+                publicKey: {
+                    challenge,
+                    rpId: window.location.hostname,
+                    userVerification: 'preferred',
+                    timeout: 60000,
+                    // Empty allowCredentials = let the authenticator show all registered credentials
+                    allowCredentials: [],
+                }
+            }) as PublicKeyCredential;
+
+            if (assertion) {
+                const { loginWithWebAuthn } = await import('@/lib/store');
+                const user = await loginWithWebAuthn(assertion.id);
+                if (user) {
+                    setStatusMsg('¡Autenticado con éxito!');
+                    onSuccess(user, 'huella');
+                } else {
+                    setStatus('error');
+                    setStatusMsg('No se pudo autenticar. Regístrese primero con huella o use credenciales.');
+                }
             }
-        } catch {
+        } catch (err) {
+            console.error('WebAuthn error:', err);
             setStatus('error');
-            setStatusMsg('Error al intentar WebAuthn.');
+            setStatusMsg('Error al intentar WebAuthn. Intente con credenciales.');
         }
     };
 
@@ -360,7 +388,7 @@ function BiometricLogin({ onBack, onSuccess, onError }: { onBack: () => void; on
             )}
             <div className="space-y-3">
                 <button onClick={startFaceScan} className="btn-primary w-full flex items-center justify-center gap-3"><Scan className="w-5 h-5" /> Escanear rostro</button>
-                <button onClick={tryWebAuthn} className="btn-secondary w-full flex items-center justify-center gap-3"><Fingerprint className="w-5 h-5" /> Huella / Iris (WebAuthn)</button>
+                <button onClick={tryWebAuthn} className="btn-secondary w-full flex items-center justify-center gap-3"><Fingerprint className="w-5 h-5" /> Usar huella / FaceID</button>
             </div>
         </div>
     );

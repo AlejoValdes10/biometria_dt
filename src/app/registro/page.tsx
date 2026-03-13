@@ -83,10 +83,11 @@ export default function RegistroPage() {
         setScanStatus('Capturando rostro... Permanezca quieto.');
         try {
             const faceapi = await import('@vladmandic/face-api');
-            // Fixed paths to use absolute /models/ reference correctly with trailing slash
-            await faceapi.nets.tinyFaceDetector.loadFromUri('/models/');
-            await faceapi.nets.faceLandmark68Net.loadFromUri('/models/');
-            await faceapi.nets.faceRecognitionNet.loadFromUri('/models/');
+            // Root-relative path works correctly on Vercel
+            const modelPath = '/models';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(modelPath);
 
             if (videoRef.current) {
                 const detections = await faceapi
@@ -205,7 +206,7 @@ export default function RegistroPage() {
                                         <div className="w-14 h-14 rounded-xl bg-surface-700 flex items-center justify-center"><User className="w-7 h-7 text-gray-300" /></div>
                                         <div className="text-left flex-1">
                                             <p className="font-semibold text-white">Registrarme con credenciales normales</p>
-                                            <p className="text-xs text-gray-400">Acceso tradicional</p>
+                                            <p className="text-xs text-gray-400">Email y contraseña</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                     </div>
@@ -222,28 +223,28 @@ export default function RegistroPage() {
                                     <label className="block text-sm text-gray-400 mb-1.5">Nombre de usuario</label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                        <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="input-field pl-12" placeholder="tu_usuario" required />
+                                        <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="input-field pl-10" placeholder="tu_usuario" required />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1.5">Correo electrónico</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                        <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field pl-12" placeholder="correo@ejemplo.com" required />
+                                        <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field pl-10" placeholder="correo@ejemplo.com" required />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1.5">Contraseña</label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                        <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="input-field pl-12" placeholder="Mínimo 8 caracteres" required minLength={8} />
+                                        <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="input-field pl-10" placeholder="Mínimo 8 caracteres" required minLength={8} />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-1.5">Confirmar contraseña</label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                        <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="input-field pl-12" placeholder="Repite la contraseña" required />
+                                        <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="input-field pl-10" placeholder="Repite la contraseña" required />
                                     </div>
                                 </div>
                                 {error && (
@@ -299,7 +300,7 @@ export default function RegistroPage() {
                                         <label className="block text-sm text-gray-400 mb-1.5">Nombre Completo</label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                            <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-field pl-12" placeholder="Juan Pérez Gomez" required />
+                                            <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="input-field pl-10" placeholder="Juan Pérez Gomez" required />
                                         </div>
                                     </div>
                                     {error && (

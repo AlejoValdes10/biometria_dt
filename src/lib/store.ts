@@ -177,34 +177,45 @@ export async function storeWebAuthnCredential(userId: string) {
     return false;
 }
 
-export async function loginWithWebAuthn(): Promise<User | null> {
+export async function loginWithWebAuthn(credentialId?: string): Promise<User | null> {
     if (!window.PublicKeyCredential) throw new Error('WebAuthn no soportado');
 
-    const challenge = new Uint8Array(32);
-    crypto.getRandomValues(challenge);
-
     try {
-        const assertion = await navigator.credentials.get({
-            publicKey: {
-                challenge,
-                rpId: window.location.hostname,
-                userVerification: 'discouraged',
-                timeout: 60000
-            }
-        }) as PublicKeyCredential;
+        let assertionId: string;
 
-        if (assertion) {
-            const res = await loginWebAuthnAction(assertion.id);
-            if (res.success && res.user) {
-                setCurrentUser(res.user as User);
-                return res.user as User;
-            }
+        if (credentialId) {
+            // Used when the caller already obtained the assertion
+            assertionId = credentialId;
+        } else {
+            // Fallback: do the WebAuthn call here (platform biometric / fingerprint)
+            const challenge = new Uint8Array(32);
+            crypto.getRandomValues(challenge);
+
+            const assertion = await navigator.credentials.get({
+                publicKey: {
+                    challenge,
+                    rpId: window.location.hostname,
+                    userVerification: 'preferred',
+                    timeout: 60000,
+                    allowCredentials: [],
+                }
+            }) as PublicKeyCredential;
+
+            if (!assertion) return null;
+            assertionId = assertion.id;
+        }
+
+        const res = await loginWebAuthnAction(assertionId);
+        if (res.success && res.user) {
+            setCurrentUser(res.user as User);
+            return res.user as User;
         }
     } catch (e) {
         console.error('WebAuthn failed', e);
     }
     return null;
 }
+
 
 export async function updateAuthTypeAndName(userId: string, authType: string, name: string): Promise<User> {
     const res = await updateUserAction(userId, { authType, name });

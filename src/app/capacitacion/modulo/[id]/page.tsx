@@ -15,9 +15,12 @@ export default function ModulePage() {
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        const u = getCurrentUser();
-        if (!u) { router.push('/'); return; }
-        setUser(u);
+        const loadUser = async () => {
+            const u = await getCurrentUser();
+            if (!u) { router.push('/'); return; }
+            setUser(u);
+        };
+        loadUser();
     }, [router]);
 
     if (!user) return null;

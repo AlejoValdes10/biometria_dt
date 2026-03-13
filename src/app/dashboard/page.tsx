@@ -11,7 +11,11 @@ export default function DashboardPage() {
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        setUser(getCurrentUser());
+        const loadUser = async () => {
+            const u = await getCurrentUser();
+            setUser(u);
+        };
+        loadUser();
     }, []);
 
     if (!user) return null;

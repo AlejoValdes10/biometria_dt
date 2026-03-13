@@ -83,7 +83,7 @@ export default function RegistroPage() {
         setScanStatus('Capturando rostro... Permanezca quieto.');
         try {
             const faceapi = await import('@vladmandic/face-api');
-            // Root-relative path works correctly on Vercel
+            // strictly relative to root for Vercel
             const modelPath = '/models';
             await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath);
             await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
@@ -196,7 +196,6 @@ export default function RegistroPage() {
                                         </div>
                                         <div className="text-left flex-1">
                                             <p className="font-semibold text-white">Registrarme con biometría (cara o huella)</p>
-                                            <p className="text-xs text-gray-400">Reconocimiento facial o huella</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-aqua-500 group-hover:translate-x-1 transition-transform" />
                                     </div>
@@ -206,7 +205,6 @@ export default function RegistroPage() {
                                         <div className="w-14 h-14 rounded-xl bg-surface-700 flex items-center justify-center"><User className="w-7 h-7 text-gray-300" /></div>
                                         <div className="text-left flex-1">
                                             <p className="font-semibold text-white">Registrarme con credenciales normales</p>
-                                            <p className="text-xs text-gray-400">Email y contraseña</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                     </div>

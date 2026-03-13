@@ -70,7 +70,7 @@ body {
 
 /* Animated background grid */
 .bg-grid {
-  background-image: 
+  background-image:
     linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
   background-size: 60px 60px;
@@ -95,8 +95,13 @@ body {
 }
 
 @keyframes scanLine {
-  0% { top: 0; }
-  100% { top: 100%; }
+  0% {
+    top: 0;
+  }
+
+  100% {
+    top: 100%;
+  }
 }
 
 /* Progress bar */
@@ -107,8 +112,13 @@ body {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Scrollbar */
@@ -174,7 +184,8 @@ body {
 
 /* Input styles */
 .input-field {
-  @apply w-full pl-4 pr-4 py-3 rounded-xl text-white placeholder-gray-500 transition-all duration-300 outline-none;
+  @apply w-full pr-4 py-3 rounded-xl text-white placeholder-gray-500 transition-all duration-300 outline-none;
+  padding-left: 48px !important;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -255,8 +266,27 @@ body {
 }
 
 /* Level badges */
-.level-novato { color: #9CA3AF; border-color: #9CA3AF; }
-.level-aprendiz { color: #60A5FA; border-color: #60A5FA; }
-.level-consciente { color: #34D399; border-color: #34D399; }
-.level-responsable { color: #FBBF24; border-color: #FBBF24; }
-.level-ejemplar { color: #F59E0B; border-color: #F59E0B; }
+.level-novato {
+  color: #9CA3AF;
+  border-color: #9CA3AF;
+}
+
+.level-aprendiz {
+  color: #60A5FA;
+  border-color: #60A5FA;
+}
+
+.level-consciente {
+  color: #34D399;
+  border-color: #34D399;
+}
+
+.level-responsable {
+  color: #FBBF24;
+  border-color: #FBBF24;
+}
+
+.level-ejemplar {
+  color: #F59E0B;
+  border-color: #F59E0B;
+}

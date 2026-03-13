@@ -153,8 +153,7 @@ export default function LoginPage() {
                                             <Scan className="w-7 h-7 text-white" />
                                         </div>
                                         <div className="text-left flex-1">
-                                            <p className="font-semibold text-white">Iniciar sesión con biometría</p>
-                                            <p className="text-xs text-gray-400">Cara o huella digital</p>
+                                            <p className="font-semibold text-white">Iniciar sesión con biometría (cara o huella)</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-aqua-500 group-hover:translate-x-1 transition-transform" />
                                     </div>
@@ -164,7 +163,6 @@ export default function LoginPage() {
                                         <div className="w-14 h-14 rounded-xl bg-surface-700 flex items-center justify-center"><User className="w-7 h-7 text-gray-300" /></div>
                                         <div className="text-left flex-1">
                                             <p className="font-semibold text-white">Iniciar sesión con credenciales normales</p>
-                                            <p className="text-xs text-gray-400">Email y contraseña</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                     </div>
@@ -267,7 +265,7 @@ function BiometricLogin({ onBack, onSuccess, onError }: { onBack: () => void; on
         setStatusMsg('Cargando modelos de reconocimiento facial...');
         try {
             const faceapi = await import('@vladmandic/face-api');
-            // Use root-relative path — works correctly on Vercel
+            // strictly relative to root for Vercel
             const modelPath = '/models';
             await faceapi.nets.tinyFaceDetector.loadFromUri(modelPath);
             await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);

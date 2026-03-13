@@ -158,7 +158,7 @@ export async function storeWebAuthnCredential(userId: string) {
                 displayName: userId
             },
             pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'discouraged' },
+            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'preferred' },
             timeout: 60000,
             attestation: 'none'
         }

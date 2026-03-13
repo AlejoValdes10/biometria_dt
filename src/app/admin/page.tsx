@@ -10,6 +10,7 @@ interface User {
     email: string;
     role: string;
     authType?: string | null;
+    facePhoto?: string | null;
     signatureData?: string | null;
     trainingProgress: {
         totalPoints: number;
@@ -116,6 +117,7 @@ export default function AdminPage() {
                                     <th className="p-4 font-semibold text-gray-300">Nombre</th>
                                     <th className="p-4 font-semibold text-gray-300">Email</th>
                                     <th className="p-4 font-semibold text-gray-300">AuthType</th>
+                                    <th className="p-4 font-semibold text-gray-300 text-center">Foto Facial</th>
                                     <th className="p-4 font-semibold text-gray-300">Progreso</th>
                                     <th className="p-4 font-semibold text-gray-300 text-center">Completado</th>
                                     <th className="p-4 font-semibold text-gray-300 text-center">Firma</th>
@@ -145,6 +147,13 @@ export default function AdminPage() {
                                                 <span className="px-2 py-1 bg-surface-700 rounded-lg text-xs capitalize text-aqua-300">
                                                     {user.authType || 'N/A'}
                                                 </span>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                {user.facePhoto ? (
+                                                    <img src={user.facePhoto} alt="Foto" className="w-8 h-8 rounded-full object-cover mx-auto" />
+                                                ) : (
+                                                    <span className="text-xs text-gray-500">Sin foto</span>
+                                                )}
                                             </td>
                                             <td className="p-4">
                                                 <span className="text-sm">{user.trainingProgress?.totalPoints || 0} pts</span>
@@ -220,6 +229,14 @@ export default function AdminPage() {
                                         <div className="bg-surface-900 border border-white/10 p-4 rounded-xl"><p className="text-sm text-gray-400">Email</p><p>{selectedUser.email}</p></div>
                                         <div className="bg-surface-900 border border-white/10 p-4 rounded-xl"><p className="text-sm text-gray-400">Rol</p><p className="capitalize">{selectedUser.role}</p></div>
                                         <div className="bg-surface-900 border border-white/10 p-4 rounded-xl"><p className="text-sm text-gray-400">AuthType</p><p className="capitalize text-aqua-400">{selectedUser.authType || 'N/A'}</p></div>
+                                    </div>
+                                    <div className="bg-surface-900 border border-white/10 p-4 rounded-xl">
+                                        <p className="text-sm text-gray-400 mb-3">Foto Facial</p>
+                                        {selectedUser.facePhoto ? (
+                                            <img src={selectedUser.facePhoto} alt="Foto Facial" className="w-full max-w-[200px] rounded-xl object-cover mx-auto shadow-lg" />
+                                        ) : (
+                                            <p className="text-center text-gray-500 italic py-4">Sin foto (registrado con credenciales o huella)</p>
+                                        )}
                                     </div>
                                     <div className="bg-surface-900 border border-white/10 p-4 rounded-xl">
                                         <p className="text-sm text-gray-400 mb-2">Progreso de Capacitación</p>

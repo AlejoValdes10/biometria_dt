@@ -96,7 +96,14 @@ export default function RegistroPage() {
                     .withFaceDescriptors();
 
                 if (detections.length > 0) {
-                    await storeBiometricData(userId, detections[0].descriptor);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = videoRef.current.videoWidth;
+                    canvas.height = videoRef.current.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                    const photoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+                    await storeBiometricData(userId, detections[0].descriptor, photoBase64);
                     setAuthType('cara');
                     setScanStatus('¡Rostro capturado exitosamente!');
                     streamRef.current?.getTracks().forEach(t => t.stop());

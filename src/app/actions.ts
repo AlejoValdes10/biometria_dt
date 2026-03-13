@@ -24,6 +24,7 @@ function mapUser(dbUser: any) {
         createdDate: dbUser.createdAt.toISOString(),
         hasBiometric: dbUser.hasBiometric,
         authType: dbUser.authType,
+        facePhoto: dbUser.facePhoto,
         trainingProgress: {
             currentModule: 0,
             completedModules: JSON.parse(dbUser.completedModules || '[]'),

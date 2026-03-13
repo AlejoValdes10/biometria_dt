@@ -21,6 +21,7 @@ export interface User {
     createdDate: string;
     hasBiometric: boolean;
     authType?: string;
+    facePhoto?: string;
     trainingProgress: TrainingProgress;
     signatureData?: string;
     certificateDate?: string;
@@ -131,11 +132,15 @@ export async function loginWithBiometric(faceDescriptor: Float32Array): Promise<
     return null;
 }
 
-export async function storeBiometricData(userId: string, descriptor: Float32Array) {
-    const res = await updateUserAction(userId, {
+export async function storeBiometricData(userId: string, descriptor: Float32Array, facePhoto?: string) {
+    const dataToUpdate: any = {
         hasBiometric: true,
         faceDescriptor: JSON.stringify(Array.from(descriptor))
-    });
+    };
+    if (facePhoto) {
+        dataToUpdate.facePhoto = facePhoto;
+    }
+    const res = await updateUserAction(userId, dataToUpdate);
     if (res.success && res.user) {
         setCurrentUser(res.user as User);
     }

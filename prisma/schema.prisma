@@ -21,6 +21,7 @@ model User {
   hasBiometric    Boolean  @default(false)
   authType        String?  // "cara", "huella", "fallback", etc.
   faceDescriptor  String?  // Stored as JSON string array
+  facePhoto       String?  // base64 de la foto capturada
   webAuthnId      String?  // Stored credential id
   
   // Training progress specific

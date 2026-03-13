@@ -14,13 +14,14 @@ export default function CertificadoPage() {
 
     useEffect(() => {
         const loadUser = async () => {
-            const u = await getCurrentUser();  // ← await es obligatorio
+            const u = await getCurrentUser();  // ← AWAIT es obligatorio porque es Promise
             if (!u) {
                 router.push('/');
                 return;
             }
 
-            if (!u.trainingProgress?.completed) {  // ← ? evita el error undefined
+            // Chequeo seguro para evitar undefined
+            if (!u.trainingProgress?.completed) {
                 router.push('/capacitacion');
                 return;
             }

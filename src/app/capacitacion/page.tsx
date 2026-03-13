@@ -20,7 +20,15 @@ export default function CapacitacionPage() {
 
     if (!user) return null;
 
-    const progress = user.trainingProgress;
+    const progress = user.trainingProgress || {
+        currentModule: 0,
+        completedModules: [],
+        moduleScores: {},
+        totalPoints: 0,
+        level: 'Novato',
+        badges: [],
+        completed: false,
+    };
     const completionPct = Math.round((progress.completedModules.length / 5) * 100);
 
     return (
@@ -71,10 +79,10 @@ export default function CapacitacionPage() {
                                 <Link
                                     href={isLocked ? '#' : `/capacitacion/modulo/${mod.id}`}
                                     className={`block p-6 rounded-2xl transition-all duration-300 border ${isCompleted
-                                            ? 'bg-aqua-700/5 border-aqua-700/20 hover:border-aqua-700/40'
-                                            : isCurrent
-                                                ? 'bg-brand-700/5 border-brand-600/20 hover:border-brand-600/40 hover:shadow-lg hover:shadow-brand-600/5'
-                                                : 'bg-surface-800/50 border-white/5 opacity-50 cursor-not-allowed'
+                                        ? 'bg-aqua-700/5 border-aqua-700/20 hover:border-aqua-700/40'
+                                        : isCurrent
+                                            ? 'bg-brand-700/5 border-brand-600/20 hover:border-brand-600/40 hover:shadow-lg hover:shadow-brand-600/5'
+                                            : 'bg-surface-800/50 border-white/5 opacity-50 cursor-not-allowed'
                                         }`}
                                 >
                                     <div className="flex items-center gap-4">

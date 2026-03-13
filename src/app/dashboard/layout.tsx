@@ -28,8 +28,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     if (!user) return null;
 
-    const progress = user.trainingProgress;
-    const completionPct = Math.round((progress.completedModules.length / 5) * 100);
+    const progress = user?.trainingProgress || {};
+    const completionPct = Math.round((progress.completedModules?.length || 0) / 5 * 100);
 
     const navItems = [
         { icon: Home, label: 'Inicio', href: '/dashboard' },

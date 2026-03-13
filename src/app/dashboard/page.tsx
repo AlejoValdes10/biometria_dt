@@ -16,7 +16,15 @@ export default function DashboardPage() {
 
     if (!user) return null;
 
-    const progress = user.trainingProgress;
+    const progress = user.trainingProgress || {
+        currentModule: 0,
+        completedModules: [],
+        moduleScores: {},
+        totalPoints: 0,
+        level: 'Novato',
+        badges: [],
+        completed: false,
+    };
     const completionPct = Math.round((progress.completedModules.length / 5) * 100);
     const showTrainingBlock = !progress.completed;
 

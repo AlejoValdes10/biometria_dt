@@ -13,9 +13,12 @@ export default function CapacitacionPage() {
     const router = useRouter();
 
     useEffect(() => {
-        const u = getCurrentUser();
-        if (!u) { router.push('/'); return; }
-        setUser(u);
+        const fetchUser = async () => {
+            const u = await getCurrentUser();
+            if (!u) { router.push('/'); return; }
+            setUser(u);
+        };
+        fetchUser();
     }, [router]);
 
     if (!user) return null;

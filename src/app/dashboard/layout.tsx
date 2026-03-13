@@ -15,10 +15,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const pathname = usePathname();
 
     useEffect(() => {
-        const u = getCurrentUser();
-        if (!u) { router.push('/'); return; }
-        if (u.role === 'admin') { router.push('/admin'); return; }
-        setUser(u);
+        const fetchUser = async () => {
+            const u = await getCurrentUser();
+            if (!u) { router.push('/'); return; }
+            if (u.role === 'admin') { router.push('/admin'); return; }
+            setUser(u);
+        };
+        fetchUser();
     }, [router, pathname]);
 
     const handleLogout = () => {
@@ -86,7 +89,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {navItems.map(item => {
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.href} href={item.href} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${isActive ? 'bg-aqua-700/15 text-aqua-400 font-medium' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                            <Link key={item.label} href={item.href} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${isActive ? 'bg-aqua-700/15 text-aqua-400 font-medium' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                                 <item.icon className="w-5 h-5" />
                                 {item.label}
                             </Link>
@@ -113,7 +116,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {navItems.map(item => {
                     const isActive = pathname === item.href;
                     return (
-                        <Link key={item.href} href={item.href} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${isActive ? 'text-aqua-400' : 'text-gray-500'}`}>
+                        <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${isActive ? 'text-aqua-400' : 'text-gray-500'}`}>
                             <item.icon className="w-5 h-5" />
                             <span className="text-xs">{item.label}</span>
                         </Link>

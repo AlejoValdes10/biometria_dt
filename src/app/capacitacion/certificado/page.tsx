@@ -13,10 +13,13 @@ export default function CertificadoPage() {
     const router = useRouter();
 
     useEffect(() => {
-        const u = getCurrentUser();
-        if (!u) { router.push('/'); return; }
-        if (!u.trainingProgress.completed) { router.push('/capacitacion'); return; }
-        setUser(u);
+        async function loadUser() {
+            const u = await getCurrentUser();
+            if (!u) { router.push('/'); return; }
+            if (!u.trainingProgress?.completed) { router.push('/capacitacion'); return; }
+            setUser(u);
+        }
+        loadUser();
     }, [router]);
 
     const generatePDF = async () => {

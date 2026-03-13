@@ -13,12 +13,21 @@ export default function CertificadoPage() {
     const router = useRouter();
 
     useEffect(() => {
-        async function loadUser() {
-            const u = await getCurrentUser();
-            if (!u) { router.push('/'); return; }
-            if (!u.trainingProgress?.completed) { router.push('/capacitacion'); return; }
+        const loadUser = async () => {
+            const u = await getCurrentUser();  // ← await aquí
+            if (!u) {
+                router.push('/');
+                return;
+            }
+
+            if (!u.trainingProgress?.completed) {  // ← ? evita error undefined
+                router.push('/capacitacion');
+                return;
+            }
+
             setUser(u);
-        }
+        };
+
         loadUser();
     }, [router]);
 

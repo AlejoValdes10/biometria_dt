@@ -14,7 +14,7 @@ export default function CertificadoPage() {
 
     useEffect(() => {
         const loadUser = async () => {
-            const u = await getCurrentUser();  // ← AWAIT es obligatorio porque es Promise
+            const u = await getCurrentUser();  // Await obligatorio para corregir error de tipo en Vercel
             if (!u) {
                 router.push('/');
                 return;

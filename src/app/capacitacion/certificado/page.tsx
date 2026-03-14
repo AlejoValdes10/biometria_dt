@@ -14,6 +14,7 @@ export default function CertificadoPage() {
 
     useEffect(() => {
         const loadUser = async () => {
+            console.log('Build v1.0.1: Loading user data for certificate');
             const u = await getCurrentUser();  // Await obligatorio para corregir error de tipo en Vercel
             if (!u) {
                 router.push('/');
